@@ -19,7 +19,7 @@ FROM alpine:latest
 
 WORKDIR /root/
 COPY --from=builder /app/main .
-COPY .env . # Копируем файл конфигурации
+COPY .env .
 
 # Порт, на котором приложение будет доступно
 EXPOSE 8080
