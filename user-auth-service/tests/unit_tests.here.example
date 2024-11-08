@@ -1,0 +1,40 @@
+POST /register
+
+json
+{
+	"username": "john_doe",
+	"email": "john@example.com",
+	"password": "securepassword"
+}
+Подтверждение email
+POST /confirm
+
+json
+{
+	"user_id": 1,
+	"code": "generated_confirmation_code"
+}
+Вход в систему
+POST /login
+
+json
+{
+	"email": "john@example.com",
+	"password": "securepassword"
+}
+Инициация восстановления пароля
+POST /forgot-password
+
+json
+{
+	"email": "john@example.com"
+}
+Сброс пароля
+POST /reset-password
+
+json
+{
+	"user_id": 1,
+	"code": "generated_recovery_code",
+	"new_password": "newsecurepassword"
+}
