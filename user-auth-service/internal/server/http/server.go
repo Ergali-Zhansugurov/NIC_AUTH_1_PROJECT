@@ -24,7 +24,8 @@ func NewServer(cfg *config.Config) *Server {
 }
 
 // Run запускает сервер
-func (s *Server) Run() {
+func (s *Server) Run() error {
+	fmt.Println("start")
 	port := s.Config.ServerPort
 	if port == "" {
 		port = "8080"
@@ -32,7 +33,9 @@ func (s *Server) Run() {
 	log.Printf("Starting server on port %s...", port)
 	if err := s.Router.Run(fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Could not start server: %v", err)
+		return err
 	}
+	return nil
 }
 
 // SetupRoutes задает маршруты (временно добавим тестовый маршрут)

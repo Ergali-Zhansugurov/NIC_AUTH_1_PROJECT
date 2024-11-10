@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"awesomeProject4/user-auth-service/internal/auth"
@@ -7,11 +7,11 @@ import (
 	"awesomeProject4/user-auth-service/internal/repository"
 	"awesomeProject4/user-auth-service/internal/server/http"
 	"awesomeProject4/user-auth-service/internal/usecase"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"github.com/sirupsen/logrus"
 )
 
-func main() {
+func Run() {
 	cfg := config.LoadConfig()
 
 	// Подключение к PostgreSQL
@@ -21,12 +21,16 @@ func main() {
 	}
 	defer postgresDB.DB.Close()
 
+	fmt.Println("postgres connected")
+
 	// Подключение к Redis
 	redisClient, err := repository.ConnectRedis(cfg)
 	if err != nil {
 		logrus.Fatalf("Ошибка подключения к Redis: %v", err)
 	}
 	defer redisClient.Client.Close()
+
+	fmt.Println("redis connected")
 
 	// Инициализация репозитория пользователей
 	userRepo := repository.NewPostgresUserRepository(postgresDB)
@@ -47,17 +51,17 @@ func main() {
 	userHandler := http.NewUserHandler(userUseCase)
 
 	// Настройка маршрутов
-	router := gin.Default()
+	srv := http.NewServer(cfg)
 
 	// Маршруты аутентификации
-	router.POST("/register", userHandler.Register)
-	router.POST("/confirm", userHandler.ConfirmEmail)
-	router.POST("/login", userHandler.Login)
-	router.POST("/forgot-password", userHandler.ForgotPassword)
-	router.POST("/reset-password", userHandler.ResetPassword)
+	srv.Router.POST("/register", userHandler.Register)
+	srv.Router.POST("/confirm", userHandler.ConfirmEmail)
+	srv.Router.POST("/login", userHandler.Login)
+	srv.Router.POST("/forgot-password", userHandler.ForgotPassword)
+	srv.Router.POST("/reset-password", userHandler.ResetPassword)
 
 	// Запуск сервера
-	if err := router.Run(cfg.ServerPort); err != nil {
+	if err := srv.Run(); err != nil {
 		logrus.Fatalf("Ошибка запуска сервера: %v", err)
 	}
 }

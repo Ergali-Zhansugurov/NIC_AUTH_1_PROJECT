@@ -15,7 +15,11 @@ type Config struct {
 	SMTPUser     string
 	SMTPPassword string
 	DBUri        string
-	DatabaseName string
+	DBNAME       string
+	DBPort       string
+	DBUser       string
+	DBPassword   string
+	DBHOST       string
 }
 
 // LoadConfiguration загружает конфигурацию из файла .env или среды
@@ -33,7 +37,11 @@ func LoadConfig() *Config {
 		SMTPUser:     getEnv("SMTP_USER", ""),
 		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
 		DBUri:        getEnv("DB_URI", ""),
-		DatabaseName: getEnv("DB_NAME", "user_auth_db"),
+		DBPort:       getEnv("DB_PORT", "5432"),
+		DBHOST:       getEnv("DBHOST", "localhost"),
+		DBUser:       getEnv("DB_USER", "postgres"),
+		DBPassword:   getEnv("DB_PASSWORD", "POSTGRES"),
+		DBNAME:       getEnv("DB_NAME", "user_auth_db"),
 	}
 }
 
