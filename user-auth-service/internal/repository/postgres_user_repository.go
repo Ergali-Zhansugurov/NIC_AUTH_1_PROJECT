@@ -5,6 +5,7 @@ import (
 	"awesomeProject4/user-auth-service/internal/domains/models"
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 type PostgresUserRepository struct {
@@ -15,39 +16,31 @@ func NewPostgresUserRepository(postgresDB *postgres.PostgresDB) *PostgresUserRep
 	return &PostgresUserRepository{db: postgresDB}
 }
 
-func (repo *PostgresUserRepository) CreateUser(ctx context.Context, user *models.User) error {
+func (repo *PostgresUserRepository) CreateUser(user *models.User) error {
 	// Валидация пользователя
+	logrus.Println("in postgres create")
 	if err := user.Validate(); err != nil {
 		return err
 	}
 	// Хэширование пароля
+	fmt.Println("user validated")
 	if err := user.HashPassword(); err != nil {
 		return err
 	}
+	fmt.Println("password hashed")
 	query := `
 		INSERT INTO users (username, email, password,  status, created_at)
 		VALUES ($1, $2, $3, $4,  NOW()) RETURNING id`
-	err := repo.db.DB.QueryRowxContext(ctx, query, user.Username, user.Email, user.Password, user.Status).Scan(&user.ID)
+	_, err := repo.db.DB.Exec(query, user.Username, user.Email, user.Password, user.Status)
+	query_id := `SELECT id FROM users WHERE email = $1`
 	if err != nil {
 		return fmt.Errorf("ошибка при создании пользователя: %w", err)
 	}
-	return nil
-}
-
-// GetUserByID получает пользователя по его ID
-func (repo *PostgresUserRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
-	query := `
-		SELECT id, username, email, password, created_at
-		FROM users
-		WHERE id = $1`
-
-	var user models.User
-	err := repo.db.DB.GetContext(ctx, &user, query, id)
-	if err != nil {
-		return nil, err
+	if err := repo.db.DB.Get(&user.ID, query_id, user.Email); err != nil {
+		return fmt.Errorf("ошибка при записи ид: %w", err)
 	}
-
-	return &user, nil
+	fmt.Println("user created")
+	return nil
 }
 
 // IsUserExists проверяет, существует ли пользователь с указанным email
@@ -60,9 +53,9 @@ func (repo *PostgresUserRepository) IsUserExists(ctx context.Context, user model
 		)`
 
 	var exists bool
-	err := repo.db.DB.GetContext(ctx, &exists, query, user.Email)
+	err := repo.db.DB.QueryRowxContext(ctx, query, user.Email).Scan(&exists)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("ошибка при проверке существования пользователя: %w", err)
 	}
 
 	return exists, nil
@@ -72,26 +65,49 @@ func (repo *PostgresUserRepository) FindUserByEmail(ctx context.Context, email s
 	query := `
 		SELECT id, username, email, password, created_at
 		FROM users WHERE email = $1`
-	var user *models.User
-	err := repo.db.DB.GetContext(ctx, &user, query, email)
+	var user models.User
+	logrus.Println("finding same email")
+	err := repo.db.DB.QueryRowxContext(ctx, query, email).StructScan(&user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ошибка при поиске пользователя по email: %w", err)
 	}
-	return user, nil
+	logrus.Println(user)
+	fmt.Println(user.Status)
+	if user.Status == "comfirmed" {
+		logrus.Println("status comfirmed")
+	}
+	s := user.Status
+	logrus.Println(s)
+	fmt.Println(user.Status, s)
+	logrus.Println("why", s)
+	return &user, nil
+}
+
+func (repo *PostgresUserRepository) FindisUsernewByEmail(ctx context.Context, email string) error {
+	query := `
+		SELECT id, username, email, password, created_at
+		FROM users WHERE email = $1`
+	logrus.Println("finding same email")
+	err := repo.db.DB.QueryRowxContext(ctx, query, email)
+	if err == nil {
+		return fmt.Errorf("ошибка при поиске пользователя по email: %w", err)
+	}
+	return nil
 }
 
 func (repo *PostgresUserRepository) FindUserByID(ctx context.Context, id int) (*models.User, error) {
 	query := `
 		SELECT id, username, email, password, created_at
 		FROM users WHERE id = $1`
-	var user *models.User
-	err := repo.db.DB.GetContext(ctx, &user, query, id)
+	var user models.User
+	err := repo.db.DB.QueryRowxContext(ctx, query, id).StructScan(&user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ошибка при поиске пользователя по ID: %w", err)
 	}
-	return user, nil
+	return &user, nil
 }
-func (repo *PostgresUserRepository) UpdateUserStatus(ctx context.Context, userID int, status models.Status) error {
+
+func (repo *PostgresUserRepository) UpdateUserStatus(ctx context.Context, userID int, status string) error {
 	query := `
 		UPDATE users SET status = $1 WHERE id = $2`
 	result, err := repo.db.DB.ExecContext(ctx, query, status, userID)

@@ -3,7 +3,9 @@ package http
 import (
 	"awesomeProject4/user-auth-service/internal/domains/models"
 	"awesomeProject4/user-auth-service/internal/usecase"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -19,6 +21,7 @@ func NewUserHandler(userUC *usecase.UserUseCase) *UserHandler {
 
 // Register регистрирует нового пользователя
 func (h *UserHandler) Register(c *gin.Context) {
+	logrus.Println("in use case handler")
 	var input struct {
 		Username string `json:"username" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
@@ -36,12 +39,12 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Password: input.Password,
 	}
 
-	if err := h.UserUC.RegisterUser(c.Request.Context(), user); err != nil {
+	if err := h.UserUC.RegisterUser(c.Request.Context(), &user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "Пользователь зарегистрирован успешно"})
+	massage := fmt.Sprintf("Пользователь зарегистрирован успешно %d", user.ID)
+	c.JSON(http.StatusCreated, gin.H{"message": massage})
 }
 
 // ConfirmEmail подтверждает email пользователя
@@ -50,17 +53,17 @@ func (h *UserHandler) ConfirmEmail(c *gin.Context) {
 		UserID int    `json:"user_id" binding:"required"`
 		Code   string `json:"code" binding:"required"`
 	}
-
+	logrus.Println("ConfirmEmail")
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	logrus.Println("ShouldBindJSON")
 	if err := h.UserUC.ConfirmEmail(c.Request.Context(), input.UserID, input.Code); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	logrus.Println("ConfirmEmail")
 	c.JSON(http.StatusOK, gin.H{"message": "Email подтвержден успешно"})
 }
 

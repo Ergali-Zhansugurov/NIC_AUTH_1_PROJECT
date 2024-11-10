@@ -5,8 +5,8 @@ import (
 	"awesomeProject4/user-auth-service/internal/domains/interfaces"
 	"awesomeProject4/user-auth-service/internal/domains/models"
 	"context"
-	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -33,18 +33,17 @@ func NewUserUseCase(userRepo interfaces.UserRepository, tokenManager auth.TokenM
 }
 
 // RegisterUser регистрирует нового пользователя
-func (uc *UserUseCase) RegisterUser(ctx context.Context, user models.User) error {
+func (uc *UserUseCase) RegisterUser(ctx context.Context, user *models.User) error {
 	// Проверка существования пользователя
-	existingUser, err := uc.UserRepo.FindUserByEmail(ctx, user.Email)
+	logrus.Println("in use case regist")
+	err := uc.UserRepo.FindisUsernewByEmail(ctx, user.Email)
 	if err != nil {
 		return err
 	}
-	if existingUser != nil {
-		return errors.New("пользователь с таким email уже существует")
-	}
 
 	// Создание пользователя
-	if err := uc.UserRepo.CreateUser(ctx, &user); err != nil {
+	logrus.Println("cheked by exist")
+	if err := uc.UserRepo.CreateUser(user); err != nil {
 		return err
 	}
 
@@ -61,9 +60,10 @@ func (uc *UserUseCase) RegisterUser(ctx context.Context, user models.User) error
 
 	// Сохранение кода подтверждения в кэш с TTL 15 минут
 	cacheKey := fmt.Sprintf("confirm_%d", user.ID)
-	if err := uc.Cache.Set(ctx, cacheKey, confirmCode, 15*time.Minute); err != nil {
+	logrus.Println("Cache Key: ", cacheKey)
+	if err := uc.Cache.Set(ctx, cacheKey, confirmCode, 15*time.Hour); err != nil {
 		return err
 	}
-
+	logrus.Println("cod sended to email and cache")
 	return nil
 }

@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"awesomeProject4/user-auth-service/internal/domains/models"
 	"context"
 	"errors"
 	"fmt"
@@ -18,9 +17,8 @@ func (uc *UserUseCase) Login(ctx context.Context, email, password string) (strin
 	if err := user.CheckPassword(password); err != nil {
 		return "", errors.New("неверные учетные данные")
 	}
-
 	// Проверка статуса подтверждения
-	if user.Status != models.StatusConfirmed {
+	if user.Status != "confirmed" {
 		return "", errors.New("email пользователя не подтвержден")
 	}
 
