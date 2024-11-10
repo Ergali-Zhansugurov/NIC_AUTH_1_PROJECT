@@ -21,7 +21,6 @@ func NewUserHandler(userUC *usecase.UserUseCase) *UserHandler {
 
 // Register регистрирует нового пользователя
 func (h *UserHandler) Register(c *gin.Context) {
-	logrus.Println("in use case handler")
 	var input struct {
 		Username string `json:"username" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
@@ -43,7 +42,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	massage := fmt.Sprintf("Пользователь зарегистрирован успешно %d", user.ID)
+	massage := fmt.Sprintf("Пользователь зарегистрирован успешно , ваш ID:%d", user.ID)
 	c.JSON(http.StatusCreated, gin.H{"message": massage})
 }
 

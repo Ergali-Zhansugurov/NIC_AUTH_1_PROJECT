@@ -6,9 +6,11 @@ import (
 	"time"
 )
 
+type Status string
+
 const (
-	StatusPending   string = "pending"
-	StatusConfirmed string = "confirmed"
+	StatusPending   Status = "pending"
+	StatusConfirmed Status = "confirmed"
 )
 
 // User представляет модель пользователя
@@ -17,7 +19,7 @@ type User struct {
 	Username  string    `db:"username" json:"username"`
 	Email     string    `db:"email" json:"email"`
 	Password  string    `db:"password" json:"-"`
-	Status    string    `db:"status" json:"status"`
+	Status    Status    `db:"status" json:"status"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 

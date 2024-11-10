@@ -35,14 +35,12 @@ func NewUserUseCase(userRepo interfaces.UserRepository, tokenManager auth.TokenM
 // RegisterUser регистрирует нового пользователя
 func (uc *UserUseCase) RegisterUser(ctx context.Context, user *models.User) error {
 	// Проверка существования пользователя
-	logrus.Println("in use case regist")
 	err := uc.UserRepo.FindisUsernewByEmail(ctx, user.Email)
 	if err != nil {
 		return err
 	}
 
 	// Создание пользователя
-	logrus.Println("cheked by exist")
 	if err := uc.UserRepo.CreateUser(user); err != nil {
 		return err
 	}

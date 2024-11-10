@@ -11,6 +11,6 @@ type UserRepository interface {
 	FindisUsernewByEmail(ctx context.Context, email string) error
 	FindUserByEmail(ctx context.Context, email string) (*models.User, error)
 	FindUserByID(ctx context.Context, id int) (*models.User, error)
-	UpdateUserStatus(ctx context.Context, userID int, status string) error
+	UpdateUserStatus(ctx context.Context, userID int, status models.Status) error
 	UpdateUserPassword(ctx context.Context, userID int, hashedPassword string) error
 }

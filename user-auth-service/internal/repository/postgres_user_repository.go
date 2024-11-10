@@ -5,7 +5,6 @@ import (
 	"awesomeProject4/user-auth-service/internal/domains/models"
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 type PostgresUserRepository struct {
@@ -18,16 +17,13 @@ func NewPostgresUserRepository(postgresDB *postgres.PostgresDB) *PostgresUserRep
 
 func (repo *PostgresUserRepository) CreateUser(user *models.User) error {
 	// Валидация пользователя
-	logrus.Println("in postgres create")
 	if err := user.Validate(); err != nil {
 		return err
 	}
 	// Хэширование пароля
-	fmt.Println("user validated")
 	if err := user.HashPassword(); err != nil {
 		return err
 	}
-	fmt.Println("password hashed")
 	query := `
 		INSERT INTO users (username, email, password,  status, created_at)
 		VALUES ($1, $2, $3, $4,  NOW()) RETURNING id`
@@ -39,7 +35,6 @@ func (repo *PostgresUserRepository) CreateUser(user *models.User) error {
 	if err := repo.db.DB.Get(&user.ID, query_id, user.Email); err != nil {
 		return fmt.Errorf("ошибка при записи ид: %w", err)
 	}
-	fmt.Println("user created")
 	return nil
 }
 
@@ -66,20 +61,10 @@ func (repo *PostgresUserRepository) FindUserByEmail(ctx context.Context, email s
 		SELECT id, username, email, password, created_at
 		FROM users WHERE email = $1`
 	var user models.User
-	logrus.Println("finding same email")
 	err := repo.db.DB.QueryRowxContext(ctx, query, email).StructScan(&user)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при поиске пользователя по email: %w", err)
 	}
-	logrus.Println(user)
-	fmt.Println(user.Status)
-	if user.Status == "comfirmed" {
-		logrus.Println("status comfirmed")
-	}
-	s := user.Status
-	logrus.Println(s)
-	fmt.Println(user.Status, s)
-	logrus.Println("why", s)
 	return &user, nil
 }
 
@@ -87,7 +72,6 @@ func (repo *PostgresUserRepository) FindisUsernewByEmail(ctx context.Context, em
 	query := `
 		SELECT id, username, email, password, created_at
 		FROM users WHERE email = $1`
-	logrus.Println("finding same email")
 	err := repo.db.DB.QueryRowxContext(ctx, query, email)
 	if err == nil {
 		return fmt.Errorf("ошибка при поиске пользователя по email: %w", err)
@@ -107,7 +91,7 @@ func (repo *PostgresUserRepository) FindUserByID(ctx context.Context, id int) (*
 	return &user, nil
 }
 
-func (repo *PostgresUserRepository) UpdateUserStatus(ctx context.Context, userID int, status string) error {
+func (repo *PostgresUserRepository) UpdateUserStatus(ctx context.Context, userID int, status models.Status) error {
 	query := `
 		UPDATE users SET status = $1 WHERE id = $2`
 	result, err := repo.db.DB.ExecContext(ctx, query, status, userID)
