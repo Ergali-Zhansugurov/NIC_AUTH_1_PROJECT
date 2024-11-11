@@ -3,10 +3,8 @@ package http
 import (
 	"awesomeProject4/user-auth-service/internal/config"
 	"fmt"
-	"log"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type Server struct {
@@ -25,7 +23,6 @@ func NewServer(cfg *config.Config) *Server {
 
 // Run запускает сервер
 func (s *Server) Run() error {
-	fmt.Println("start")
 	port := s.Config.ServerPort
 	if port == "" {
 		port = "8080"
@@ -36,11 +33,4 @@ func (s *Server) Run() error {
 		return err
 	}
 	return nil
-}
-
-// SetupRoutes задает маршруты (временно добавим тестовый маршрут)
-func (s *Server) SetupRoutes() {
-	s.Router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
 }

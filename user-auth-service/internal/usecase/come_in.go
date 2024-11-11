@@ -13,7 +13,6 @@ func (uc *UserUseCase) Login(ctx context.Context, email, password string) (strin
 	if err != nil {
 		return "", err
 	}
-
 	// Проверка пароля
 	if err := user.CheckPassword(password); err != nil {
 		return "", errors.New("неверные учетные данные")

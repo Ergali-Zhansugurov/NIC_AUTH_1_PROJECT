@@ -58,7 +58,7 @@ func (repo *PostgresUserRepository) IsUserExists(ctx context.Context, user model
 
 func (repo *PostgresUserRepository) FindUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT id, username, email, password, created_at
+		SELECT id, username, email, password, created_at ,status
 		FROM users WHERE email = $1`
 	var user models.User
 	err := repo.db.DB.QueryRowxContext(ctx, query, email).StructScan(&user)

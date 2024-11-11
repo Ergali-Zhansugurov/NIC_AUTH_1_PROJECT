@@ -7,7 +7,6 @@ import (
 	"awesomeProject4/user-auth-service/internal/repository"
 	"awesomeProject4/user-auth-service/internal/server/http"
 	"awesomeProject4/user-auth-service/internal/usecase"
-	"fmt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,16 +20,12 @@ func Run() {
 	}
 	defer postgresDB.DB.Close()
 
-	fmt.Println("postgres connected")
-
 	// Подключение к Redis
 	redisClient, err := repository.ConnectRedis(cfg)
 	if err != nil {
 		logrus.Fatalf("Ошибка подключения к Redis: %v", err)
 	}
 	defer redisClient.Client.Close()
-
-	fmt.Println("redis connected")
 
 	// Инициализация репозитория пользователей
 	userRepo := repository.NewPostgresUserRepository(postgresDB)

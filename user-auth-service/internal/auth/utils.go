@@ -23,8 +23,3 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hash), nil
 }
-
-// CheckPassword проверяет, соответствует ли введенный пароль хэшированному.
-func CheckPassword(hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-}
